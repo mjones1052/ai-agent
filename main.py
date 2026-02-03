@@ -4,7 +4,7 @@ from google import genai
 import argparse
 from google.genai import types
 import prompts
-from functions.call_function import available_functions
+from functions.call_function import available_functions, call_function
 
 load_dotenv()
 
@@ -35,11 +35,33 @@ if args.verbose == True:
     if response.function_calls:
         for function_call in response.function_calls:
             print(f"Calling function: {function_call.name}({function_call.args})")
+            function_call_result = call_function(function_call, verbose=True)
+            if function_call_result.parts is None:
+                raise Exception("No parts in function call result")
+            elif function_call_result.parts[0].function_response is None:
+                raise Exception("No function response in function call result part")
+            elif function_call_result.parts[0].function_response.response is None:
+                raise Exception("No response in function response")
+            else:
+                call_results = function_call_result.parts[0]
+                print(f"-> {function_call_result.parts[0].function_response.response}")
+            
+                
     else:
         print(response.text)
 else:
     if response.function_calls:
         for function_call in response.function_calls:
             print(f"Calling function: {function_call.name}({function_call.args})")
+            function_call_result = call_function(function_call, verbose=False)
+            if function_call_result.parts is None:
+                raise Exception("No parts in function call result")
+            elif function_call_result.parts[0].function_response is None:
+                raise Exception("No function response in function call result part")
+            elif function_call_result.parts[0].function_response.response is None:
+                raise Exception("No response in function response")
+            else:
+                call_results = function_call_result.parts[0]
+                print(f"-> {function_call_result.parts[0].function_response.response}")
     else:
         print(response.text)
